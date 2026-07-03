@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="求职助手">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="apple-touch-icon" href="icons/icon.svg">
+    <title>Boss直聘助手 - 求职防骗分析工具</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🛡️</span>
+                <h1>求职防骗助手</h1>
+            </div>
+            <button id="themeToggle" class="theme-toggle" aria-label="切换主题">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+        </div>
+        <p class="header-subtitle">智能分析Boss直聘岗位 · 识别欺诈 · 解读职位内容</p>
+    </header>
+
+    <main class="app-main">
+        <!-- 输入区域 -->
+        <section class="input-section">
+            <div class="input-card">
+                <div class="input-tabs">
+                    <button class="tab-btn active" data-tab="link" onclick="switchTab('link')">
+                        <span>🔗</span> 粘贴链接
+                    </button>
+                    <button class="tab-btn" data-tab="text" onclick="switchTab('text')">
+                        <span>📝</span> 粘贴内容
+                    </button>
+                </div>
+
+                <!-- 链接输入模式 -->
+                <div class="tab-content" id="tab-link">
+                    <div class="input-group">
+                        <label for="jobLink">Boss直聘岗位链接</label>
+                        <div class="input-wrapper">
+                            <input type="url" id="jobLink" placeholder="例如：https://www.zhipin.com/job_detail/..." />
+                            <button class="clear-btn" onclick="clearInput('jobLink')" aria-label="清除">✕</button>
+                        </div>
+                        <p class="input-hint">💡 在Boss直聘App中复制岗位链接后粘贴到这里</p>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="action-btn secondary" onclick="showSampleData()">
+                            📋 试试示例数据
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 文本输入模式 -->
+                <div class="tab-content hidden" id="tab-text">
+                    <div class="input-group">
+                        <label for="jobContent">粘贴完整的岗位介绍</label>
+                        <textarea id="jobContent" rows="8" placeholder="请从Boss直聘复制岗位介绍，包括职位名称、薪资、公司信息、职位描述、任职要求等全部内容..."></textarea>
+                        <div class="textarea-toolbar">
+                            <span class="char-count" id="charCount">0 字</span>
+                            <button class="clear-btn small" onclick="clearInput('jobContent')">清除</button>
+                        </div>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="action-btn secondary" onclick="showSampleData()">
+                            📋 试试示例数据
+                        </button>
+                    </div>
+                </div>
+
+                <button id="analyzeBtn" class="analyze-btn" onclick="startAnalysis()">
+                    <span class="btn-icon">🔍</span>
+                    <span class="btn-text">开始分析</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 分析中 - 加载动画 -->
+        <section id="loadingSection" class="loading-section hidden">
+            <div class="loading-card">
+                <div class="loading-spinner">
+                    <div class="spinner-ring"></div>
+                    <div class="spinner-ring inner"></div>
+                </div>
+                <h3>正在智能分析...</h3>
+                <div class="loading-steps">
+                    <div class="step" id="step1">
+                        <span class="step-icon">📄</span>
+                        <span class="step-text">解析岗位内容</span>
+                        <span class="step-status">进行中</span>
+                    </div>
+                    <div class="step" id="step2">
+                        <span class="step-icon">🔎</span>
+                        <span class="step-text">欺诈特征检测</span>
+                        <span class="step-status">等待中</span>
+                    </div>
+                    <div class="step" id="step3">
+                        <span class="step-icon">📊</span>
+                        <span class="step-text">综合评分计算</span>
+                        <span class="step-status">等待中</span>
+                    </div>
+                    <div class="step" id="step4">
+                        <span class="step-icon">💡</span>
+                        <span class="step-text">生成解读报告</span>
+                        <span class="step-status">等待中</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 分析结果区域 -->
+        <section id="resultSection" class="result-section hidden">
+            <!-- 风险评分卡片 -->
+            <div class="result-card risk-card">
+                <div class="risk-header">
+                    <h2>安全风险评估</h2>
+                    <div class="risk-badge" id="riskBadge">
+                        <span class="badge-icon"></span>
+                        <span class="badge-text"></span>
+                    </div>
+                </div>
+                <div class="score-container">
+                    <div class="score-ring">
+                        <svg viewBox="0 0 120 120" class="score-svg">
+                            <circle cx="60" cy="60" r="54" class="score-bg-ring" />
+                            <circle cx="60" cy="60" r="54" class="score-progress-ring" id="scoreRing" />
+                        </svg>
+                        <div class="score-value">
+                            <span id="scoreNumber">0</span>
+                            <span class="score-unit">分</span>
+                        </div>
+                    </div>
+                    <div class="score-details">
+                        <div class="score-item">
+                            <span class="score-label">可信度</span>
+                            <div class="score-bar">
+                                <div class="score-fill" id="trustBar"></div>
+                            </div>
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">透明度</span>
+                            <div class="score-bar">
+                                <div class="score-fill" id="transparencyBar"></div>
+                            </div>
+                        </div>
+                        <div class="score-item">
+                            <span class="score-label">合理性</span>
+                            <div class="score-bar">
+                                <div class="score-fill" id="reasonBar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 欺诈检测结果 -->
+            <div class="result-card fraud-card">
+                <h2 class="card-title">
+                    <span>🚨</span> 欺诈特征检测
+                </h2>
+                <div id="fraudResults" class="fraud-list"></div>
+            </div>
+
+            <!-- 岗位分析解读 -->
+            <div class="result-card analysis-card">
+                <h2 class="card-title">
+                    <span>📋</span> 岗位内容解读
+                </h2>
+                <div id="analysisResults" class="analysis-content"></div>
+            </div>
+
+            <!-- 综合建议 -->
+            <div class="result-card advice-card">
+                <h2 class="card-title">
+                    <span>💡</span> 求职建议
+                </h2>
+                <div id="adviceContent" class="advice-content"></div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="action-buttons">
+                <button class="action-btn primary" onclick="startAnalysis()">
+                    🔄 重新分析
+                </button>
+                <button class="action-btn secondary" onclick="shareResult()">
+                    📤 分享结果
+                </button>
+                <button class="action-btn secondary" onclick="scrollToTop()">
+                    ⬆️ 返回顶部
+                </button>
+            </div>
+        </section>
+
+        <!-- 使用说明 -->
+        <section class="guide-section">
+            <div class="guide-card">
+                <h3>📖 使用说明</h3>
+                <div class="guide-steps">
+                    <div class="guide-step">
+                        <span class="step-num">1</span>
+                        <div>
+                            <strong>获取岗位信息</strong>
+                            <p>在Boss直聘App中打开目标岗位，点击分享→复制链接；或全选复制岗位介绍文本</p>
+                        </div>
+                    </div>
+                    <div class="guide-step">
+                        <span class="step-num">2</span>
+                        <div>
+                            <strong>粘贴到工具</strong>
+                            <p>选择"粘贴链接"或"粘贴内容"模式，将复制的信息粘贴到输入框中</p>
+                        </div>
+                    </div>
+                    <div class="guide-step">
+                        <span class="step-num">3</span>
+                        <div>
+                            <strong>开始分析</strong>
+                            <p>点击"开始分析"按钮，等待智能检测完成（约3-5秒）</p>
+                        </div>
+                    </div>
+                    <div class="guide-step">
+                        <span class="step-num">4</span>
+                        <div>
+                            <strong>查看报告</strong>
+                            <p>查看安全评分、欺诈检测结果和详细的岗位解读，辅助求职决策</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-card warning-card">
+                <h3>⚠️ 重要提示</h3>
+                <ul>
+                    <li>本工具分析结果仅供参考，不构成专业法律意见</li>
+                    <li>所有数据在本地分析处理，不会上传到任何服务器</li>
+                    <li>如遇可疑招聘，请及时向平台举报或报警处理</li>
+                    <li>建议结合多方信息综合判断岗位真实性</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- 底部 -->
+    <footer class="app-footer">
+        <p>🛡️ 求职防骗助手 · 保护每一位求职者</p>
+        <p class="footer-small">数据仅在本地浏览器中分析，不会上传任何信息</p>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="backToTop" class="back-to-top hidden" onclick="scrollToTop()" aria-label="返回顶部">
+        ⬆
+    </button>
+
+    <script src="app.js"></script>
+</body>
+</html>

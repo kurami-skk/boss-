@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>App 图标生成器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+            background: #f0f4ff;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #4F46E5;
+            margin: 20px 0;
+            font-size: 24px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+        }
+        .preview {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        canvas {
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.3);
+        }
+        .sizes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .size-btn {
+            padding: 10px 18px;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .size-btn:hover {
+            border-color: #4F46E5;
+            color: #4F46E5;
+        }
+        .size-btn.active {
+            border-color: #4F46E5;
+            background: #EEF2FF;
+            color: #4F46E5;
+        }
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+        }
+        .download-all-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #10B981, #34D399);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+        .download-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+        .info {
+            text-align: center;
+            color: #64748B;
+            font-size: 14px;
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+        .status {
+            text-align: center;
+            padding: 10px;
+            background: #EEF2FF;
+            border-radius: 10px;
+            color: #4F46E5;
+            font-size: 14px;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ App 图标生成器</h1>
+        <div class="card">
+            <div class="preview">
+                <canvas id="iconCanvas" width="512" height="512"></canvas>
+            </div>
+            <div class="sizes" id="sizeOptions"></div>
+            <button class="download-btn" onclick="downloadIcon()">📥 下载当前图标</button>
+            <button class="download-all-btn" onclick="downloadAllIcons()">📦 下载全部尺寸图标</button>
+            <div id="status" class="status">当前尺寸：512x512</div>
+        </div>
+        <div class="card">
+            <div class="info">
+                <p>📱 将所有生成的图标保存到 <code>icons/</code> 文件夹中</p>
+                <p style="margin-top:8px;">图标命名格式：<code>icon-{尺寸}.png</code></p>
+                <p style="margin-top:8px;">需要的尺寸：72x72, 96x96, 128x128, 144x144, 152x152, 192x192, 384x384, 512x512</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+        let currentSize = 512;
+
+        // 初始化尺寸按钮
+        const sizeContainer = document.getElementById('sizeOptions');
+        SIZES.forEach(size => {
+            const btn = document.createElement('button');
+            btn.className = 'size-btn' + (size === currentSize ? ' active' : '');
+            btn.textContent = size + 'x' + size;
+            btn.onclick = () => selectSize(size);
+            sizeContainer.appendChild(btn);
+        });
+
+        function selectSize(size) {
+            currentSize = size;
+            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.size-btn').forEach(b => {
+                if (b.textContent.startsWith(size + 'x')) b.classList.add('active');
+            });
+            drawIcon(size);
+            document.getElementById('status').textContent = `当前尺寸：${size}x${size}`;
+        }
+
+        function drawIcon(size) {
+            const canvas = document.getElementById('iconCanvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const s = size;
+
+            // 背景渐变
+            const gradient = ctx.createLinearGradient(0, 0, s, s);
+            gradient.addColorStop(0, '#4F46E5');
+            gradient.addColorStop(1, '#7C3AED');
+            ctx.fillStyle = gradient;
+
+            // 圆角矩形
+            const r = s * 0.2;
+            ctx.beginPath();
+            ctx.moveTo(r, 0);
+            ctx.lineTo(s - r, 0);
+            ctx.quadraticCurveTo(s, 0, s, r);
+            ctx.lineTo(s, s - r);
+            ctx.quadraticCurveTo(s, s, s - r, s);
+            ctx.lineTo(r, s);
+            ctx.quadraticCurveTo(0, s, 0, s - r);
+            ctx.lineTo(0, r);
+            ctx.quadraticCurveTo(0, 0, r, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // 放大镜
+            const cx = s * 0.4;
+            const cy = s * 0.4;
+            const cr = s * 0.18;
+
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = s * 0.045;
+            ctx.beginPath();
+            ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 放大镜手柄
+            ctx.beginPath();
+            ctx.moveTo(cx + cr * 0.7, cy + cr * 0.7);
+            ctx.lineTo(cx + cr * 1.5, cy + cr * 1.5);
+            ctx.stroke();
+
+            // 盾牌
+            const shX = s * 0.62;
+            const shY = s * 0.18;
+            const shW = s * 0.3;
+            const shH = s * 0.5;
+
+            ctx.strokeStyle = '#34D399';
+            ctx.lineWidth = s * 0.03;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const topY = shY;
+            const midX = shX + shW / 2;
+
+            ctx.beginPath();
+            ctx.moveTo(shX, shY + shH * 0.2);
+            ctx.lineTo(shX, topY);
+            ctx.lineTo(shX + shW, topY);
+            ctx.lineTo(shX + shW, shY + shH * 0.2);
+            ctx.quadraticCurveTo(shX + shW, shY + shH * 0.7, midX, shY + shH);
+            ctx.quadraticCurveTo(shX, shY + shH * 0.7, shX, shY + shH * 0.2);
+            ctx.stroke();
+
+            // 盾牌上的对勾
+            ctx.strokeStyle = '#34D399';
+            ctx.lineWidth = s * 0.03;
+            ctx.beginPath();
+            ctx.moveTo(shX + shW * 0.25, shY + shH * 0.5);
+            ctx.lineTo(shX + shW * 0.42, shY + shH * 0.7);
+            ctx.lineTo(shX + shW * 0.75, shY + shH * 0.3);
+            ctx.stroke();
+        }
+
+        function downloadIcon() {
+            const canvas = document.getElementById('iconCanvas');
+            const link = document.createElement('a');
+            link.download = `icon-${currentSize}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadAllIcons() {
+            const status = document.getElementById('status');
+            status.textContent = '⏳ 正在生成所有图标...';
+
+            setTimeout(async () => {
+                for (const size of SIZES) {
+                    drawIcon(size);
+                    const canvas = document.getElementById('iconCanvas');
+                    const link = document.createElement('a');
+                    link.download = `icon-${size}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                // 恢复原始尺寸
+                selectSize(currentSize);
+                status.textContent = '✅ 所有图标已生成！请检查下载文件夹';
+            }, 300);
+        }
+
+        // 初始绘制
+        drawIcon(512);
+    </script>
+</body>
+</html>

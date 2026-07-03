@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">求职防骗助手</string>
+    <string name="app_desc">智能分析Boss直聘岗位信息，识别欺诈职位</string>
+
+    <!-- 首页 -->
+    <string name="home_title">求职防骗助手</string>
+    <string name="home_subtitle">智能分析Boss直聘岗位 · 识别欺诈 · 解读职位内容</string>
+    <string name="gallery_option">从相册选择截图</string>
+    <string name="gallery_desc">从手机相册选取Boss直聘的岗位截图</string>
+    <string name="camera_option">拍照识别</string>
+    <string name="camera_desc">用相机拍摄电脑或手机上的招聘信息</string>
+    <string name="text_option">粘贴文本分析</string>
+    <string name="text_desc">复制粘贴岗位介绍文本进行分析</string>
+
+    <!-- 分析页 -->
+    <string name="analyzing">正在分析中...</string>
+    <string name="ocr_step">📄 识别图片中的文字</string>
+    <string name="detect_step">🔎 欺诈特征检测</string>
+    <string name="score_step">📊 综合评分计算</string>
+    <string name="report_step">💡 生成解读报告</string>
+
+    <!-- 结果页 -->
+    <string name="safe_rating">安全可靠</string>
+    <string name="warning_rating">需要关注</string>
+    <string name="danger_rating">风险较高</string>
+
+    <!-- 通用 -->
+    <string name="analyze_btn">开始分析</string>
+    <string name="re_analyze">重新分析</string>
+    <string name="back_home">返回首页</string>
+    <string name="share_report">分享报告</string>
+    <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
+    <string name="paste_hint">请粘贴Boss直聘的岗位介绍内容…</string>
+    <string name="link_hint">https://www.zhipin.com/job_detail/…</string>
+</resources>
